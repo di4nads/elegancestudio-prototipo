@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EleganceStudio — protótipo navegável</title>
+<style>
+  :root{
+    --canvas:#E4E4E4;
+    --frame:#FFFFFF;
+    --line:#C7C7C7;
+    --line-soft:#DEDEDE;
+    --fill:#EFEFEF;
+    --ink:#2E2E2E;
+    --ink-soft:#6E6E6E;
+    --dark:#3A3A3A;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:var(--canvas);
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    scroll-behavior:smooth;
+  }
+
+  .page-head{
+    padding:40px 40px 8px;
+    max-width:1600px;
+    margin:0 auto;
+  }
+  .page-head h1{
+    font-size:22px;
+    font-weight:600;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .page-head p{
+    margin:0;
+    font-size:13px;
+    color:var(--ink-soft);
+    max-width:70ch;
+    line-height:1.5;
+  }
+
+  .board{
+    display:flex;
+    flex-wrap:wrap;
+    gap:56px 40px;
+    padding:32px 40px 80px;
+    max-width:1600px;
+    margin:0 auto;
+    align-items:flex-start;
+  }
+
+  .frame-wrap{width:360px;}
+
+  .frame-label{
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+    letter-spacing:0.01em;
+  }
+
+  .frame{
+    width:360px;
+    height:800px;
+    background:var(--frame);
+    border:1px solid var(--line);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .statusbar{
+    height:24px;
+    flex:0 0 24px;
+    background:var(--fill);
+    border-bottom:1px solid var(--line-soft);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 12px;
+    font-size:10px;
+    color:var(--ink-soft);
+  }
+
+  .appbar{
+    flex:0 0 52px;
+    border-bottom:1px solid var(--line-soft);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:0 16px;
+    font-size:14px;
+    font-weight:600;
+  }
+  .appbar .back{
+    color:var(--ink-soft);
+    text-decoration:none;
+    font-size:16px;
+    line-height:1;
+  }
+
+  .body{
+    flex:1 1 auto;
+    padding:16px;
+    overflow:hidden;
+  }
+
+  .stack{display:flex;flex-direction:column;gap:12px;}
+  .stack-sm{display:flex;flex-direction:column;gap:8px;}
+
+  .h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-0.01em;}
+  .h2{font-size:15px;font-weight:600;margin:0;}
+  .p{font-size:12.5px;line-height:1.5;margin:0;color:var(--ink-soft);}
+  .label{font-size:11px;color:var(--ink-soft);margin-bottom:4px;display:block;}
+  .muted{color:var(--ink-soft);font-size:11.5px;}
+
+  .placeholder{
+    background:var(--fill);
+    border:1px solid var(--line-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#A5A5A5;
+    font-size:11px;
+  }
+  .hero-img{height:150px;}
+  .thumb{width:52px;height:52px;flex:0 0 52px;}
+
+  .field{
+    height:40px;
+    border:1px solid var(--line);
+    background:#FBFBFB;
+    display:flex;
+    align-items:center;
+    padding:0 12px;
+    font-size:12.5px;
+    color:#9A9A9A;
+  }
+
+  .btn{
+    height:44px;
+    background:var(--dark);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:13.5px;
+    font-weight:500;
+    text-decoration:none;
+    border:1px solid var(--dark);
+  }
+  .btn-ghost{
+    height:44px;
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:13.5px;
+    text-decoration:none;
+  }
+  .btn-sm{
+    height:32px;
+    padding:0 14px;
+    background:var(--dark);
+    color:#fff;
+    font-size:12px;
+    display:inline-flex;
+    align-items:center;
+    text-decoration:none;
+    border:1px solid var(--dark);
+  }
+  .btn-sm-ghost{
+    height:32px;
+    padding:0 14px;
+    background:transparent;
+    color:var(--ink);
+    font-size:12px;
+    display:inline-flex;
+    align-items:center;
+    text-decoration:none;
+    border:1px solid var(--line);
+  }
+  .link{
+    font-size:12px;
+    color:var(--ink);
+    text-decoration:underline;
+    text-align:center;
+  }
+
+  .card{
+    border:1px solid var(--line-soft);
+    padding:12px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .card .grow{flex:1 1 auto;min-width:0;}
+  .card-title{font-size:13.5px;font-weight:600;margin:0 0 2px;}
+
+  .divider{height:1px;background:var(--line-soft);}
+
+  .row{display:flex;gap:8px;align-items:center;}
+  .row-between{display:flex;justify-content:space-between;align-items:center;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{
+    border:1px solid var(--line);
+    padding:7px 12px;
+    font-size:12px;
+    color:var(--ink);
+    text-decoration:none;
+  }
+  .chip-on{background:var(--dark);color:#fff;border-color:var(--dark);}
+  .chip-off{color:#B5B5B5;background:#F7F7F7;text-decoration:line-through;}
+
+  .cal{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+  }
+  .cal div{
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11.5px;
+    border:1px solid var(--line-soft);
+  }
+  .cal .dow{border:0;color:var(--ink-soft);font-size:10px;height:20px;}
+  .cal .off{color:#C4C4C4;background:#F7F7F7;}
+  .cal .sel{background:var(--dark);color:#fff;border-color:var(--dark);}
+
+  .tabs{display:flex;border-bottom:1px solid var(--line-soft);}
+  .tabs span{
+    flex:1;
+    text-align:center;
+    padding:10px 0;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .tabs .on{color:var(--ink);font-weight:600;border-bottom:2px solid var(--dark);}
+
+  .status-tag{
+    font-size:10.5px;
+    border:1px solid var(--line);
+    padding:2px 7px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+
+  .summary{border:1px solid var(--line-soft);padding:14px;}
+  .summary .line{
+    display:flex;
+    justify-content:space-between;
+    font-size:12.5px;
+    padding:7px 0;
+    gap:12px;
+  }
+  .summary .line + .line{border-top:1px solid var(--line-soft);}
+  .summary .line span:first-child{color:var(--ink-soft);}
+
+  .slot{
+    display:flex;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid var(--line-soft);
+    font-size:12px;
+  }
+  .slot .hour{width:44px;flex:0 0 44px;color:var(--ink-soft);}
+  .slot .grow{flex:1 1 auto;}
+  .slot .name{font-weight:600;font-size:12.5px;}
+
+  .tabbar{
+    flex:0 0 56px;
+    border-top:1px solid var(--line-soft);
+    display:flex;
+  }
+  .tabbar span{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:10.5px;
+    color:var(--ink-soft);
+  }
+  .tabbar .on{color:var(--ink);font-weight:600;}
+
+  .kpis{display:flex;gap:8px;}
+  .kpi{
+    flex:1;
+    border:1px solid var(--line-soft);
+    padding:10px;
+    text-align:center;
+  }
+  .kpi b{display:block;font-size:18px;font-weight:600;}
+  .kpi span{font-size:10.5px;color:var(--ink-soft);}
+
+  a{color:inherit;}
+
+  html,body{height:100%;}
+  body{
+    background:#DFDFDF;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:24px 16px 32px;
+    gap:18px;
+  }
+  .topo{text-align:center;}
+  .topo h1{font-size:16px;font-weight:600;margin:0 0 4px;}
+  .topo p{font-size:12px;color:var(--ink-soft);margin:0;}
+
+  .device{
+    width:392px;
+    padding:16px;
+    background:#2B2B2B;
+    border-radius:34px;
+    box-shadow:0 18px 40px rgba(0,0,0,.28);
+    flex:0 0 auto;
+  }
+  .device .frame{
+    width:360px;
+    height:760px;
+    border:0;
+    border-radius:20px;
+    overflow:hidden;
+    position:relative;
+  }
+  .tela{display:none;flex-direction:column;height:100%;}
+  .tela.ativa{display:flex;}
+  .tela .body{overflow-y:auto;}
+
+  .indice{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    justify-content:center;
+    max-width:460px;
+  }
+  .mini{
+    font:inherit;
+    font-size:11px;
+    padding:6px 10px;
+    background:#fff;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-radius:2px;
+  }
+  .mini:hover{color:var(--ink);border-color:#9A9A9A;}
+  .mini.on{background:var(--dark);border-color:var(--dark);color:#fff;}
+  .dica{font-size:11.5px;color:var(--ink-soft);text-align:center;max-width:420px;line-height:1.5;}
+  a{cursor:pointer;}
+  a:focus-visible,.mini:focus-visible{outline:2px solid #2B2B2B;outline-offset:2px;}
+</style>
+</head>
+<body>
+
+  <div class="topo">
+    <h1>EleganceStudio</h1>
+    <p>Protótipo de baixa fidelidade — toque nos botões para navegar</p>
+  </div>
+
+  <div class="device">
+    <div class="frame">
+      <section class="tela ativa" data-tela="home">
+      <div class="statusbar"><span>9:41</span><span>Wi-Fi · 100%</span></div>
+      <div class="appbar"><span>EleganceStudio</span></div>
+      <div class="body stack">
+        <div class="placeholder hero-img">imagem do salão</div>
+        <div class="stack-sm">
+          <h2 class="h1">Marque seu horário em poucos toques</h2>
+          <p class="p">Escolha o serviço, o profissional e o horário que combinam com você.</p>
+        </div>
+        <a class="btn" href="#" data-ir="servicos">Agendar horário</a>
+        <div class="row">
+          <a class="btn-ghost" href="#" data-ir="login" style="flex:1">Entrar</a>
+          <a class="btn-ghost" href="#" data-ir="cadastro" style="flex:1">Criar conta</a>
+        </div>
+        <div class="divider"></div>
+        <h3 class="h2">Serviços mais procurados</h3>
+        <div class="stack-sm">
+          <div class="card">
+            <div class="placeholder thumb">foto</div>
+            <div class="grow">
+              <p class="card-title">Corte feminino</p>
+              <span class="muted">60 min · a partir de R$ 80</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="placeholder thumb">foto</div>
+            <div class="grow">
+              <p class="card-title">Coloração</p>
+              <span class="muted">120 min · a partir de R$ 180</span>
+            </div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <p class="muted">Rua Exemplo, 123 — Recife · Terça a sábado, 9h às 19h</p>
+      </div>
+    </section><section class="tela" data-tela="cadastro">
+      <div class="statusbar"><span>9:41</span><span>Wi-Fi · 100%</span></div>
+      <div class="appbar"><a class="back" href="#" data-ir="home">←</a><span>Criar conta</span></div>
+      <div class="body stack">
+        <p class="p">Preencha seus dados para agendar e acompanhar seus atendimentos.</p>
+        <div>
+          <span class="label">Nome completo</span>
+          <div class="field">Maria da Silva</div>
+        </div>
+        <div>
+          <span class="label">Telefone</span>
+          <div class="field">(81) 90000-0000</div>
+        </div>
+        <div>
+          <span class="label">E-mail</span>
+          <div class="field">maria@email.com</div>
+        </div>
+        <div>
+          <span class="label">Senha</span>
+          <div class="field">••••••••</div>
+        </div>
+        <div>
+          <span class="label">Confirmar senha</span>
+          <div class="field">••••••••</div>
+        </div>
+        <p class="muted">Ao criar a conta você concorda com o uso dos seus dados apenas para o agendamento.</p>
+        <a class="btn" href="#" data-ir="servicos">Criar conta</a>
+        <a class="link" href="#" data-ir="login">Já tenho conta</a>
+      </div>
+    </section><section class="tela" data-tela="login">
+      <div class="statusbar"><span>9:41</span><span>Wi-Fi · 100%</span></div>
+      <div class="appbar"><a class="back" href="#" data-ir="home">←</a><span>Entrar</span></div>
+      <div class="body stack">
+        <div class="placeholder hero-img" style="height:110px">logo</div>
+        <div>
+          <span class="label">E-mail</span>
+          <div class="field">maria@email.com</div>
+        </div>
+        <div>
+          <span class="label">Senha</span>
+          <div class="field">••••••••</div>
+        </div>
+        <a class="btn" href="#" data-ir="servicos">Entrar</a>
+        <a class="link" href="#" data-ir="login">Esqueci minha senha</a>
+        <div class="divider"></div>
+        <p class="p">Ainda não tem conta?</p>
+        <a class="btn-ghost" href="#" data-ir="cadastro">Criar conta</a>
+        <div class="divider"></div>
+        <p class="muted">Acesso da equipe do salão: use o e-mail administrativo para abrir o painel.</p>
+        <a class="link" href="#" data-ir="admin">Entrar como administradora</a>
+      </div>
+    </section><section class="tela" data-tela="servicos">
+      <div class="statusbar"><span>9:41</span><span>Wi-Fi · 100%</span></div>
+      <div class="appbar"><a class="back" href="#" data-ir="home">←</a><span>Escolha o serviço</span></div>
+      <div class="body stack-sm">
+        <div class="field">Buscar serviço</div>
+        <div class="chips">
+          <span class="chip chip-on">Todos</span>
+          <span class="chip">Cabelo</span>
+          <span class="chip">Unhas</span>
+          <span class="chip">Sobrancelha</span>
+        </div>
+        <div class="card">
+          <div class="placeholder thumb">foto</div>
+          <div class="grow">
+            <p class="card-title">Corte feminino</p>
+            <span class="muted">60 min · R$ 80</span>
+          </div>
+          <a class="btn-sm" href="#" data-ir="horarios">Agendar</a>
+        </div>
+        <div class="card">
+          <div class="placeholder thumb">foto</div>
+          <div class="grow">
+            <p class="card-title">Escova</p>
+            <span class="muted">45 min · R$ 60</span>
+          </div>
+          <a class="btn-sm" href="#" data-ir="horarios">Agendar</a>
+        </div>
+        <div class="card">
+          <div class="placeholder thumb">foto</div>
+          <div class="grow">
+            <p class="card-title">Coloração</p>
+            <span class="muted">120 min · R$ 180</span>
+          </div>
+          <a class="btn-sm" href="#" data-ir="horarios">Agendar</a>
+        </div>
+        <div class="card">
+          <div class="placeholder thumb">foto</div>
+          <div class="grow">
+            <p class="card-title">Manicure</p>
+            <span class="muted">40 min · R$ 45</span>
+          </div>
+          <a class="btn-sm" href="#" data-ir="horarios">Agendar</a>
+        </div>
+        <div class="card">
+          <div class="placeholder thumb">foto</div>
+          <div class="grow">
+            <p class="card-title">Design de sobrancelha</p>
+            <span class="muted">20 min · R$ 35</span>
+          </div>
+          <a class="btn-sm" href="#" data-ir="horarios">Agendar</a>
+        </div>
+      </div>
+    </section><section class="tela" data-tela="horarios">
+      <div class="statusbar"><span>9:41</span><span>Wi-Fi · 100%</span></div>
+      <div class="appbar"><a class="back" href="#" data-ir="servicos">←</a><span>Data e horário</span></div>
+      <div class="body stack">
+        <div class="card">
+          <div class="placeholder thumb">foto</div>
+          <div class="grow">
+            <p class="card-title">Corte feminino</p>
+            <span class="muted">60 min · R$ 80</span>
+          </div>
+        </div>
+
+        <div>
+          <span class="label">Profissional</span>
+          <div class="chips">
+            <span class="chip chip-on">Ana</span>
+            <span class="chip">Júlia</span>
+            <span class="chip">Sem preferência</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="row-between" style="margin-bottom:8px">
+            <span class="h2">Março 2026</span>
+            <span class="muted">‹  ›</span>
+          </div>
+          <div class="cal">
+            <div class="dow">D</div><div class="dow">S</div><div class="dow">T</div><div class="dow">Q</div><div class="dow">Q</div><div class="dow">S</div><div class="dow">S</div>
+            <div class="off">1</div><div class="off">2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div>
+            <div class="off">8</div><div class="off">9</div><div>10</div><div class="sel">11</div><div>12</div><div>13</div><div>14</div>
+            <div class="off">15</div><div class="off">16</div><div>17</div><div>18</div><div>19</div><div>20</div><div>21</div>
+          </div>
+        </div>
+
+        <div>
+          <span class="label">Horários livres em 11 de março</span>
+          <div class="chips">
+            <span class="chip">09:00</span>
+            <span class="chip chip-off">10:00</span>
+            <span class="chip chip-on">11:00</span>
+            <span class="chip">13:00</span>
+            <span class="chip chip-off">14:00</span>
+            <span class="chip">15:00</span>
+            <span class="chip">16:30</span>
+            <span class="chip">18:00</span>
+          </div>
+        </div>
+
+        <p class="muted">Horários riscados já estão ocupados.</p>
+        <a class="btn" href="#" data-ir="confirmacao">Continuar</a>
+      </div>
+    </section><section class="tela" data-tela="confirmacao">
+      <div class="statusbar"><span>9:41</span><span>Wi-Fi · 100%</span></div>
+      <div class="appbar"><a class="back" href="#" data-ir="horarios">←</a><span>Confirmar agendamento</span></div>
+      <div class="body stack">
+        <p class="p">Confira os dados antes de confirmar.</p>
+        <div class="summary">
+          <div class="line"><span>Serviço</span><span>Corte feminino</span></div>
+          <div class="line"><span>Profissional</span><span>Ana</span></div>
+          <div class="line"><span>Data</span><span>11 de março, quarta</span></div>
+          <div class="line"><span>Horário</span><span>11:00 — 12:00</span></div>
+          <div class="line"><span>Valor</span><span>R$ 80</span></div>
+        </div>
+        <div>
+          <span class="label">Observações para o salão (opcional)</span>
+          <div class="field" style="height:72px;align-items:flex-start;padding-top:10px">Ex.: cabelo com química recente</div>
+        </div>
+        <p class="muted">Você receberá uma confirmação por e-mail e um lembrete um dia antes. Cancelamentos até 4 horas antes do horário.</p>
+        <a class="btn" href="#" data-ir="agendamentos">Confirmar agendamento</a>
+        <a class="btn-ghost" href="#" data-ir="horarios">Escolher outro horário</a>
+      </div>
+    </section><section class="tela" data-tela="agendamentos">
+      <div class="statusbar"><span>9:41</span><span>Wi-Fi · 100%</span></div>
+      <div class="appbar"><a class="back" href="#" data-ir="home">←</a><span>Meus agendamentos</span></div>
+      <div class="tabs"><span class="on">Próximos</span><span>Anteriores</span></div>
+      <div class="body stack-sm">
+        <div class="card" style="flex-direction:column;align-items:stretch;gap:10px">
+          <div class="row-between">
+            <p class="card-title">Corte feminino</p>
+            <span class="status-tag">Confirmado</span>
+          </div>
+          <span class="muted">11 de março, quarta · 11:00 · com Ana</span>
+          <div class="row">
+            <a class="btn-sm-ghost" href="#" data-ir="horarios">Reagendar</a>
+            <a class="btn-sm-ghost" href="#" data-ir="agendamentos">Cancelar</a>
+          </div>
+        </div>
+
+        <div class="card" style="flex-direction:column;align-items:stretch;gap:10px">
+          <div class="row-between">
+            <p class="card-title">Manicure</p>
+            <span class="status-tag">Confirmado</span>
+          </div>
+          <span class="muted">25 de março, quarta · 15:00 · com Júlia</span>
+          <div class="row">
+            <a class="btn-sm-ghost" href="#" data-ir="horarios">Reagendar</a>
+            <a class="btn-sm-ghost" href="#" data-ir="agendamentos">Cancelar</a>
+          </div>
+        </div>
+
+        <div class="divider" style="margin:6px 0"></div>
+        <p class="muted">Nada mais marcado por aqui.</p>
+        <a class="btn" href="#" data-ir="servicos">Agendar novo horário</a>
+      </div>
+      <div class="tabbar">
+        <span>Início</span><span class="on">Agenda</span><span>Perfil</span>
+      </div>
+    </section><section class="tela" data-tela="admin">
+      <div class="statusbar"><span>9:41</span><span>Wi-Fi · 100%</span></div>
+      <div class="appbar"><a class="back" href="#" data-ir="login">←</a><span>Agenda do dia</span></div>
+      <div class="body stack-sm">
+        <div class="row-between">
+          <span class="h2">Quarta, 11 de março</span>
+          <span class="muted">‹  ›</span>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><b>7</b><span>atendimentos</span></div>
+          <div class="kpi"><b>2</b><span>horários livres</span></div>
+          <div class="kpi"><b>1</b><span>cancelado</span></div>
+        </div>
+
+        <div class="slot">
+          <span class="hour">09:00</span>
+          <span class="grow"><span class="name">Camila Rocha</span><br><span class="muted">Escova · Ana</span></span>
+          <span class="status-tag">Concluído</span>
+        </div>
+        <div class="slot">
+          <span class="hour">10:00</span>
+          <span class="grow"><span class="name">Beatriz Lima</span><br><span class="muted">Coloração · Júlia</span></span>
+          <span class="status-tag">Em atendimento</span>
+        </div>
+        <div class="slot">
+          <span class="hour">11:00</span>
+          <span class="grow"><span class="name">Maria da Silva</span><br><span class="muted">Corte feminino · Ana</span></span>
+          <span class="status-tag">Confirmado</span>
+        </div>
+        <div class="slot">
+          <span class="hour">13:00</span>
+          <span class="grow"><span class="muted">Horário livre</span></span>
+          <a class="btn-sm-ghost" href="#" data-ir="admin">Encaixar</a>
+        </div>
+        <div class="slot">
+          <span class="hour">15:00</span>
+          <span class="grow"><span class="name">Renata Alves</span><br><span class="muted">Manicure · Júlia</span></span>
+          <span class="status-tag">Confirmado</span>
+        </div>
+
+        <a class="btn" href="#" data-ir="admin" style="margin-top:6px">Novo agendamento</a>
+      </div>
+      <div class="tabbar">
+        <span class="on">Agenda</span><span>Serviços</span><span>Profissionais</span><span>Relatórios</span>
+      </div>
+    </section>
+    </div>
+  </div>
+
+  <div class="indice">
+      <button class="mini" data-ir="home">01 Home</button>
+      <button class="mini" data-ir="cadastro">02 Cadastro</button>
+      <button class="mini" data-ir="login">03 Login</button>
+      <button class="mini" data-ir="servicos">04 Serviços</button>
+      <button class="mini" data-ir="horarios">05 Data e horário</button>
+      <button class="mini" data-ir="confirmacao">06 Confirmação</button>
+      <button class="mini" data-ir="agendamentos">07 Meus agendamentos</button>
+      <button class="mini" data-ir="admin">08 Painel admin</button>
+  </div>
+
+  <p class="dica">Comece por "Agendar horário" para percorrer o fluxo do cliente. Os botões acima saltam direto para qualquer tela.</p>
+
+<script>
+  const telas = document.querySelectorAll('.tela');
+  const botoes = document.querySelectorAll('.mini');
+
+  function mostrar(id){
+    telas.forEach(t => t.classList.toggle('ativa', t.dataset.tela === id));
+    botoes.forEach(b => b.classList.toggle('on', b.dataset.ir === id));
+    const ativa = document.querySelector('.tela.ativa .body');
+    if (ativa) ativa.scrollTop = 0;
+  }
+
+  document.addEventListener('click', e => {
+    const alvo = e.target.closest('[data-ir]');
+    if (!alvo) return;
+    e.preventDefault();
+    mostrar(alvo.dataset.ir);
+  });
+
+  mostrar('home');
+</script>
+</body>
+</html>
